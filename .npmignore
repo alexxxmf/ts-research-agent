@@ -1,0 +1,49 @@
+# NPM Ignore File
+# Even though we use "files" whitelist, this provides extra safety
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Source files (we ship dist/)
+src/
+tsconfig.json
+tsconfig.tsbuildinfo
+
+# Examples and scripts
+examples/
+scripts/
+test-retry.ts
+
+# Docker and deployment
+docker-compose.yml
+searxng/
+*.sh
+
+# Documentation (except README.md)
+ARCHITECTURE.md
+IMPROVEMENTS.md
+QUICKSTART.md
+SEARXNG_INSTANCES.md
+DEPLOY_TO_SERVER.md
+DOCKER_SETUP.md
+
+# Generated files
+openrouter-models.json
+*.log
+
+# IDE and OS files
+.DS_Store
+.claude/
+.vscode/
+.idea/
+
+# Git
+.git/
+.gitignore
+.github/
+
+# Node
+node_modules/
+package-lock.json

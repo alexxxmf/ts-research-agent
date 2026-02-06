@@ -29,9 +29,6 @@ export class CostEstimator {
     this.enabled = enabled;
   }
 
-  /**
-   * Log token usage for a step
-   */
   logUsage(step: string, model: string, promptTokens: number, completionTokens: number): void {
     if (!this.enabled) return;
 
@@ -43,9 +40,6 @@ export class CostEstimator {
     });
   }
 
-  /**
-   * Calculate cost for a specific model and token counts
-   */
   calculateCost(model: string, promptTokens: number, completionTokens: number): number {
     const pricing = MODEL_PRICING[model] || { prompt: 0, completion: 0 };
     const promptCost = (promptTokens / 1_000_000) * pricing.prompt;
@@ -53,17 +47,10 @@ export class CostEstimator {
     return promptCost + completionCost;
   }
 
-  /**
-   * Estimate tokens in text (rough approximation)
-   * ~4 characters per token on average
-   */
   estimateTokens(text: string): number {
     return Math.ceil(text.length / 4);
   }
 
-  /**
-   * Generate cost breakdown report
-   */
   getBreakdown(): CostBreakdown | undefined {
     if (!this.enabled || this.usageLog.length === 0) return undefined;
 
@@ -89,9 +76,6 @@ export class CostEstimator {
     };
   }
 
-  /**
-   * Format cost breakdown as human-readable string
-   */
   formatBreakdown(): string {
     const breakdown = this.getBreakdown();
     if (!breakdown) return '';
@@ -111,24 +95,15 @@ export class CostEstimator {
     return output;
   }
 
-  /**
-   * Reset usage log
-   */
   reset(): void {
     this.usageLog = [];
   }
 
-  /**
-   * Get total cost so far
-   */
   getTotalCost(): number {
     const breakdown = this.getBreakdown();
     return breakdown?.estimatedCost ?? 0;
   }
 
-  /**
-   * Get total tokens so far
-   */
   getTotalTokens(): number {
     const breakdown = this.getBreakdown();
     return breakdown?.totalTokens ?? 0;

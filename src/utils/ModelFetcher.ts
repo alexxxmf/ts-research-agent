@@ -25,9 +25,6 @@ interface OpenRouterModelsResponse {
   data: OpenRouterModel[];
 }
 
-/**
- * Fetch all available models from OpenRouter
- */
 export async function fetchAvailableModels(apiKey: string): Promise<OpenRouterModel[]> {
   try {
     const response = await axios.get<OpenRouterModelsResponse>(
@@ -45,9 +42,6 @@ export async function fetchAvailableModels(apiKey: string): Promise<OpenRouterMo
   }
 }
 
-/**
- * Filter models by pricing (for tier suggestions)
- */
 export function categorizeModelsByPrice(models: OpenRouterModel[]) {
   const textModels = models.filter(m =>
     m.architecture?.modality === 'text' ||
@@ -73,9 +67,6 @@ export function categorizeModelsByPrice(models: OpenRouterModel[]) {
   return { small, medium, large };
 }
 
-/**
- * Search for models by name
- */
 export function searchModels(models: OpenRouterModel[], query: string): OpenRouterModel[] {
   const lowerQuery = query.toLowerCase();
   return models.filter(m =>
@@ -84,9 +75,6 @@ export function searchModels(models: OpenRouterModel[], query: string): OpenRout
   );
 }
 
-/**
- * Get recommended models for research agent
- */
 export function getRecommendedModels(models: OpenRouterModel[]) {
   // Search for specific models we want
   const deepseek = searchModels(models, 'deepseek-chat');
@@ -102,9 +90,6 @@ export function getRecommendedModels(models: OpenRouterModel[]) {
   };
 }
 
-/**
- * Save models list to JSON file
- */
 export function saveModelsToFile(models: OpenRouterModel[], outputPath: string = './openrouter-models.json'): void {
   const data = {
     fetchedAt: new Date().toISOString(),
@@ -125,9 +110,6 @@ export function saveModelsToFile(models: OpenRouterModel[], outputPath: string =
   console.log(`✅ Saved ${models.length} models to ${outputPath}`);
 }
 
-/**
- * CLI utility to fetch and save models
- */
 export async function fetchAndSaveModels(apiKey: string, outputPath?: string): Promise<void> {
   console.log('🔍 Fetching available models from OpenRouter...');
 

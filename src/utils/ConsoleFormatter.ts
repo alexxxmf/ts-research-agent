@@ -60,9 +60,6 @@ const stageConfig: Record<ProgressStage, { emoji: string; color: string; label: 
 };
 
 export class ConsoleFormatter {
-  /**
-   * Format a progress message with emoji and color
-   */
   static formatProgress(stage: ProgressStage, message: string, progress?: number): string {
     const config = stageConfig[stage];
     const progressBar = progress !== undefined ? ` (${progress}%)` : '';
@@ -70,45 +67,27 @@ export class ConsoleFormatter {
     return `${config.emoji} ${config.color}${config.label}${colors.reset}${progressBar} ${message}`;
   }
 
-  /**
-   * Format a stage label with color
-   */
   static formatStage(stage: ProgressStage): string {
     const config = stageConfig[stage];
     return `${config.emoji} ${config.color}${config.label}${colors.reset}`;
   }
 
-  /**
-   * Format a success message
-   */
   static success(message: string): string {
     return `${colors.brightGreen}✅ ${message}${colors.reset}`;
   }
 
-  /**
-   * Format a warning message
-   */
   static warning(message: string): string {
     return `${colors.brightYellow}⚠️  ${message}${colors.reset}`;
   }
 
-  /**
-   * Format an info message
-   */
   static info(message: string): string {
     return `${colors.brightCyan}ℹ️  ${message}${colors.reset}`;
   }
 
-  /**
-   * Format a metric/stat message
-   */
   static stat(message: string): string {
     return `${colors.brightMagenta}📊 ${message}${colors.reset}`;
   }
 
-  /**
-   * Check if terminal supports colors
-   */
   static get supportsColor(): boolean {
     // Check common environment variables
     if (process.env.NO_COLOR || process.env.NODE_DISABLE_COLORS) {
@@ -128,16 +107,10 @@ export class ConsoleFormatter {
     return true; // Default to color support
   }
 
-  /**
-   * Strip ANSI codes if colors not supported
-   */
   private static stripColors(str: string): string {
     return str.replace(/\x1b\[[0-9;]*m/g, '');
   }
 
-  /**
-   * Format with automatic color detection
-   */
   static format(stage: ProgressStage, message: string, progress?: number): string {
     const formatted = this.formatProgress(stage, message, progress);
     return this.supportsColor ? formatted : this.stripColors(formatted);

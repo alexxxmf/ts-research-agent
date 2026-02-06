@@ -14,16 +14,10 @@ export class ScraperProvider implements IScraperProvider {
     this.rateLimiter = new RateLimiter(maxConcurrent, 50); // 50ms = 20/sec
   }
 
-  /**
-   * Scrape a single URL using Jina.ai
-   */
   async scrape(url: string): Promise<string> {
     return this.rateLimiter.add(() => this.executeScrape(url));
   }
 
-  /**
-   * Scrape multiple URLs in parallel (respecting rate limit)
-   */
   async scrapeMany(results: SearchResult[]): Promise<ScrapedContent[]> {
     const scrapePromises = results.map(async (result) => {
       try {
@@ -48,9 +42,6 @@ export class ScraperProvider implements IScraperProvider {
     return Promise.all(scrapePromises);
   }
 
-  /**
-   * Execute the actual scrape with retry logic
-   */
   private async executeScrape(url: string): Promise<string> {
     let lastError: Error | null = null;
 
@@ -111,9 +102,6 @@ export class ScraperProvider implements IScraperProvider {
     throw new Error(`Failed to scrape ${url}: ${lastError?.message}`);
   }
 
-  /**
-   * Get rate limiter statistics
-   */
   getStats() {
     return this.rateLimiter.getStats();
   }

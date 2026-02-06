@@ -45,13 +45,11 @@ export class ResearchAgent {
     this.validateConfig(config);
     this.config = config;
 
-    // Initialize providers
     this.llm = new LLMProvider(config.openRouterKey);
     this.search = new SearchProvider(config.searxngConfig);
     this.scraper = new ScraperProvider(config.maxConcurrentScrapes ?? 20);
     this.cache = new Cache(config.persistence);
 
-    // Initialize pipeline
     this.pipeline = new Pipeline(
       this.llm,
       this.search,
@@ -92,9 +90,6 @@ export class ResearchAgent {
     this.cache.close();
   }
 
-  /**
-   * Validate configuration
-   */
   private validateConfig(config: ResearchAgentConfig): void {
     if (!config.openRouterKey || config.openRouterKey.trim().length === 0) {
       throw new Error('OpenRouter API key is required');
@@ -119,16 +114,10 @@ export class ResearchAgent {
     }
   }
 
-  /**
-   * Get current configuration
-   */
   getConfig(): ResearchAgentConfig {
     return { ...this.config };
   }
 
-  /**
-   * Update SearXNG instances
-   */
   updateSearchInstances(instances: string[]): void {
     if (!instances || instances.length === 0) {
       throw new Error('At least one SearXNG instance must be provided');
@@ -137,7 +126,6 @@ export class ResearchAgent {
     this.config.searxngConfig.instances = instances;
     this.search = new SearchProvider(this.config.searxngConfig);
 
-    // Recreate pipeline with new search provider
     this.pipeline = new Pipeline(
       this.llm,
       this.search,

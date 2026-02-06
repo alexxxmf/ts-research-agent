@@ -47,9 +47,6 @@ export class Pipeline {
     this.costEstimator = new CostEstimator(false); // Will be enabled per-request
   }
 
-  /**
-   * Execute the full research pipeline
-   */
   async execute(query: string, options: ResearchOptions = {}): Promise<ResearchResult> {
     const startTime = Date.now();
     const depth = options.depth || 'normal';
@@ -58,7 +55,6 @@ export class Pipeline {
     const signal = options.signal;
     const allowPartialResults = options.allowPartialResults ?? true;
 
-    // Reset state
     this.seenUrls.clear();
     this.costEstimator = new CostEstimator(enableCostTracking);
 
@@ -66,14 +62,12 @@ export class Pipeline {
     const executedQueries: string[] = [];
     const allSummaries: string[] = [];
 
-    // Helper to check cancellation
     const checkCancellation = () => {
       if (signal?.aborted) {
         throw new Error('Research cancelled by user');
       }
     };
 
-    // Wrap in try-catch for error recovery
     let allScrapedContent: ScrapedContent[] = [];
     let currentRound = 0;
     let partialError: string | undefined;
@@ -179,7 +173,6 @@ export class Pipeline {
       onProgress({ stage: 'reporting', message: 'Generating final research report...', progress: 95 });
       const report = await this.generateReport(query, rankedContent);
 
-      // Calculate metadata
       const totalDuration = Date.now() - startTime;
       const costs = this.costEstimator.getBreakdown();
 
@@ -236,9 +229,6 @@ export class Pipeline {
     }
   }
 
-  /**
-   * Step 1: Plan search queries
-   */
   private async planQueries(query: string): Promise<PlanningResponse> {
     const prompt = PROMPTS.planning();
     const fullPrompt = `${prompt}\n\nRESEARCH QUERY: ${query}`;
@@ -259,9 +249,6 @@ export class Pipeline {
     }
   }
 
-  /**
-   * Execute multiple searches and combine results
-   */
   private async executeSearches(queries: string[], limitPerQuery: number): Promise<SearchResult[]> {
     const allResults: SearchResult[][] = [];
 
@@ -276,7 +263,6 @@ export class Pipeline {
       }
     }
 
-    // Flatten and deduplicate by URL
     const uniqueResults = new Map<string, SearchResult>();
     allResults.flat().forEach(result => {
       if (!uniqueResults.has(result.url)) {
@@ -287,27 +273,19 @@ export class Pipeline {
     return Array.from(uniqueResults.values());
   }
 
-  /**
-   * Sleep helper
-   */
   private sleep(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
-  /**
-   * Scrape content from search results (with caching, deduplication, and quality scoring)
-   */
   private async scrapeResults(results: SearchResult[]): Promise<ScrapedContent[]> {
     const scrapedContent: ScrapedContent[] = [];
 
     for (const result of results) {
-      // Check if URL was already seen (deduplication)
       const isDuplicate = this.seenUrls.has(result.url);
       if (!isDuplicate) {
         this.seenUrls.add(result.url);
       }
 
-      // Check cache first
       const cached = await this.cache.get(result.url);
 
       if (cached) {
@@ -332,7 +310,6 @@ export class Pipeline {
       }
     }
 
-    // Batch scrape uncached results
     const uncachedResults = results.filter((_, i) => !scrapedContent[i].cached);
     if (uncachedResults.length > 0) {
       const freshlyScraped = await this.scraper.scrapeMany(uncachedResults);
@@ -350,14 +327,12 @@ export class Pipeline {
             duplicate: scrapedContent[i].duplicate
           };
 
-          // Cache it
           await this.cache.set(scrapedContent[i].url, scrapedContent[i].content);
           uncachedIndex++;
         }
       }
     }
 
-    // Log quality stats
     const avgQuality = scrapedContent.reduce((sum, item) => sum + (item.qualityScore || 0), 0) / scrapedContent.length;
     const duplicateCount = scrapedContent.filter(item => item.duplicate).length;
 
@@ -369,9 +344,6 @@ export class Pipeline {
     return scrapedContent.sort((a, b) => (b.qualityScore || 0) - (a.qualityScore || 0));
   }
 
-  /**
-   * Summarize each piece of content
-   */
   private async summarizeContent(query: string, content: ScrapedContent[]): Promise<string[]> {
     const summaries: string[] = [];
 
@@ -394,9 +366,6 @@ export class Pipeline {
     return summaries;
   }
 
-  /**
-   * Evaluate gaps and generate follow-up queries
-   */
   private async evaluateGaps(query: string, summaries: string[]): Promise<EvaluationResponse> {
     const prompt = PROMPTS.evaluator();
     const summariesText = summaries.join('\n---\n');
@@ -418,9 +387,6 @@ export class Pipeline {
     }
   }
 
-  /**
-   * Filter and rank sources
-   */
   private async filterAndRank(query: string, content: ScrapedContent[]): Promise<ScrapedContent[]> {
     const prompt = PROMPTS.filter();
 
@@ -448,9 +414,6 @@ export class Pipeline {
     }
   }
 
-  /**
-   * Generate final research report
-   */
   private async generateReport(query: string, content: ScrapedContent[]): Promise<string> {
     const prompt = PROMPTS.reporter();
 
@@ -477,9 +440,6 @@ export class Pipeline {
     return response;
   }
 
-  /**
-   * Get model for specific agent type
-   */
   private getModelForAgent(agentType: AgentType): string {
     // Check custom models first
     if (this.modelConfig.customModels?.[agentType]) {
@@ -498,33 +458,22 @@ export class Pipeline {
     return DEFAULT_MODELS[tier];
   }
 
-  /**
-   * Generate with caching and cost tracking
-   */
   private async generateWithCache(step: string, model: string, prompt: string): Promise<string> {
-    // Check LLM cache
     const cached = await this.cache.getCachedLLM(prompt, model);
     if (cached) {
       return cached;
     }
 
-    // Generate
     const promptTokens = this.llm.estimateTokens(prompt);
     const response = await this.llm.generate(prompt, { model });
     const completionTokens = this.llm.estimateTokens(response);
 
-    // Track cost
     this.costEstimator.logUsage(step, model, promptTokens, completionTokens);
-
-    // Cache response
     await this.cache.cacheLLM(prompt, model, response);
 
     return response;
   }
 
-  /**
-   * Create basic summary from scraped content (fallback)
-   */
   private createBasicSummary(query: string, content: ScrapedContent[]): string {
     const sources = content
       .slice(0, 10)

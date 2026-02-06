@@ -51,9 +51,6 @@ export class LLMProvider implements ILLMProvider {
     });
   }
 
-  /**
-   * Generate completion from OpenRouter
-   */
   async generate(prompt: string, options: LLMGenerateOptions = {}): Promise<string> {
     const {
       model = 'meta-llama/llama-3.1-8b-instruct',
@@ -141,17 +138,10 @@ export class LLMProvider implements ILLMProvider {
     } as LLMError;
   }
 
-  /**
-   * Estimate token count (rough approximation)
-   * ~4 characters per token on average
-   */
   estimateTokens(text: string): number {
     return Math.ceil(text.length / 4);
   }
 
-  /**
-   * Get model pricing information
-   */
   getModelInfo(modelId: string): ModelInfo {
     const pricing = MODEL_PRICING[modelId] || { prompt: 0, completion: 0 };
 
@@ -161,9 +151,6 @@ export class LLMProvider implements ILLMProvider {
     };
   }
 
-  /**
-   * Calculate cost for a completion
-   */
   calculateCost(modelId: string, promptTokens: number, completionTokens: number): number {
     const info = this.getModelInfo(modelId);
     const promptCost = (promptTokens / 1_000_000) * info.pricing.prompt;

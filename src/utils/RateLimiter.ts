@@ -1,7 +1,4 @@
-/**
- * Rate limiter for API calls
- * Ensures we don't exceed rate limits (e.g., Jina.ai 20 requests/second)
- */
+
 export class RateLimiter {
   private queue: Array<{
     fn: () => Promise<any>;
@@ -17,9 +14,6 @@ export class RateLimiter {
     private minInterval: number = 50 // 50ms = 20 requests/second
   ) {}
 
-  /**
-   * Add a function to the rate-limited queue
-   */
   async add<T>(fn: () => Promise<T>): Promise<T> {
     return new Promise((resolve, reject) => {
       this.queue.push({ fn, resolve, reject });
@@ -27,9 +21,6 @@ export class RateLimiter {
     });
   }
 
-  /**
-   * Process queued requests
-   */
   private async process(): Promise<void> {
     if (this.processing >= this.maxConcurrent || this.queue.length === 0) {
       return;
@@ -61,9 +52,6 @@ export class RateLimiter {
     }
   }
 
-  /**
-   * Get queue statistics
-   */
   getStats() {
     return {
       queueLength: this.queue.length,

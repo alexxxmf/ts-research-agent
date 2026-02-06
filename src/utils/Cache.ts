@@ -16,14 +16,10 @@ export class Cache implements CacheProvider {
     }
   }
 
-  /**
-   * Initialize SQLite database
-   */
   private initializeDatabase(storagePath: string): void {
     try {
       this.db = new Database(storagePath);
 
-      // Create tables
       this.db.exec(`
         CREATE TABLE IF NOT EXISTS search_cache (
           url TEXT PRIMARY KEY,
@@ -49,7 +45,6 @@ export class Cache implements CacheProvider {
         CREATE INDEX IF NOT EXISTS idx_session_updated ON sessions(updated_at);
       `);
 
-      // Clean up old entries
       this.cleanup();
     } catch (error) {
       console.warn('Failed to initialize cache database:', error);
@@ -57,9 +52,6 @@ export class Cache implements CacheProvider {
     }
   }
 
-  /**
-   * Get cached value
-   */
   async get(key: string): Promise<string | null> {
     if (!this.enabled || !this.db) return null;
 
@@ -70,10 +62,8 @@ export class Cache implements CacheProvider {
 
       if (!row) return null;
 
-      // Check if cache is still valid
       const age = Date.now() - row.scraped_at;
       if (age > this.cacheDuration) {
-        // Expired, delete it
         this.db.prepare('DELETE FROM search_cache WHERE url = ?').run(key);
         return null;
       }
@@ -85,9 +75,6 @@ export class Cache implements CacheProvider {
     }
   }
 
-  /**
-   * Set cached value
-   */
   async set(key: string, value: string, ttl?: number): Promise<void> {
     if (!this.enabled || !this.db) return;
 
@@ -101,17 +88,11 @@ export class Cache implements CacheProvider {
     }
   }
 
-  /**
-   * Check if key exists in cache
-   */
   async has(key: string): Promise<boolean> {
     const value = await this.get(key);
     return value !== null;
   }
 
-  /**
-   * Clear all cache entries
-   */
   async clear(): Promise<void> {
     if (!this.enabled || !this.db) return;
 
@@ -122,9 +103,6 @@ export class Cache implements CacheProvider {
     }
   }
 
-  /**
-   * Cache LLM response
-   */
   async cacheLLM(prompt: string, model: string, response: string): Promise<void> {
     if (!this.enabled || !this.db) return;
 
@@ -140,9 +118,6 @@ export class Cache implements CacheProvider {
     }
   }
 
-  /**
-   * Get cached LLM response
-   */
   async getCachedLLM(prompt: string, model: string): Promise<string | null> {
     if (!this.enabled || !this.db) return null;
 
@@ -154,7 +129,6 @@ export class Cache implements CacheProvider {
 
       if (!row) return null;
 
-      // Check if cache is still valid
       const age = Date.now() - row.created_at;
       if (age > this.cacheDuration) {
         this.db.prepare('DELETE FROM llm_cache WHERE prompt_hash = ?').run(hash);
@@ -168,9 +142,6 @@ export class Cache implements CacheProvider {
     }
   }
 
-  /**
-   * Save session state
-   */
   async saveSession(id: string, state: any): Promise<void> {
     if (!this.enabled || !this.db) return;
 
@@ -186,9 +157,6 @@ export class Cache implements CacheProvider {
     }
   }
 
-  /**
-   * Load session state
-   */
   async loadSession(id: string): Promise<any | null> {
     if (!this.enabled || !this.db) return null;
 
@@ -206,9 +174,6 @@ export class Cache implements CacheProvider {
     }
   }
 
-  /**
-   * Clean up expired entries
-   */
   private cleanup(): void {
     if (!this.enabled || !this.db) return;
 
@@ -223,16 +188,10 @@ export class Cache implements CacheProvider {
     }
   }
 
-  /**
-   * Hash prompt and model for caching
-   */
   private hashPrompt(prompt: string, model: string): string {
     return createHash('sha256').update(`${model}:${prompt}`).digest('hex');
   }
 
-  /**
-   * Close database connection
-   */
   close(): void {
     if (this.db) {
       this.db.close();

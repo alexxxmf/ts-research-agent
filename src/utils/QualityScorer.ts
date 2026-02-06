@@ -26,9 +26,6 @@ export class QualityScorer {
     'github.com', 'stackoverflow.com', 'medium.com', 'dev.to', 'mozilla.org', 'w3.org'
   ]);
 
-  /**
-   * Score content quality from 0-100
-   */
   static scoreContent(title: string, url: string, content: string): number {
     const factors: QualityFactors = {
       contentLength: this.scoreContentLength(content),
@@ -47,9 +44,6 @@ export class QualityScorer {
     return Math.round(Math.min(100, Math.max(0, score)));
   }
 
-  /**
-   * Score based on content length (sweet spot: 1000-10000 chars)
-   */
   private static scoreContentLength(content: string): number {
     const length = content.length;
 
@@ -63,9 +57,6 @@ export class QualityScorer {
     return 50; // Very long, possibly dump/spam
   }
 
-  /**
-   * Score domain reputation
-   */
   private static scoreDomainReputation(url: string): number {
     try {
       const urlObj = new URL(url);
@@ -95,9 +86,6 @@ export class QualityScorer {
     }
   }
 
-  /**
-   * Score readability (simple heuristics)
-   */
   private static scoreReadability(content: string): number {
     // Remove extra whitespace for analysis
     const normalized = content.replace(/\s+/g, ' ').trim();
@@ -142,9 +130,6 @@ export class QualityScorer {
     return Math.round(Math.min(100, Math.max(0, score)));
   }
 
-  /**
-   * Validate query quality
-   */
   static validateQuery(query: string): { valid: boolean; reason?: string } {
     const trimmed = query.trim();
 

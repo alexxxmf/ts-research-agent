@@ -28,9 +28,6 @@ export class SearchProvider implements ISearchProvider {
     }
   }
 
-  /**
-   * Search using SearXNG with failover/rotation logic
-   */
   async search(query: string, limit: number = 10): Promise<SearchResult[]> {
     const instances = this.config.instances;
     const maxRetries = this.config.maxRetries!;
@@ -97,9 +94,6 @@ export class SearchProvider implements ISearchProvider {
     } as SearchError;
   }
 
-  /**
-   * Execute search against a specific instance
-   */
   private async executeSearch(instanceUrl: string, query: string, limit: number): Promise<SearchResult[]> {
     const client = axios.create({
       timeout: this.config.timeout,
@@ -135,7 +129,6 @@ export class SearchProvider implements ISearchProvider {
       throw new Error('Invalid response from SearXNG: Results is not an array');
     }
 
-    // Map results and limit
     const results: SearchResult[] = response.data.results
       .slice(0, limit)
       .map(result => ({
@@ -147,9 +140,6 @@ export class SearchProvider implements ISearchProvider {
     return results;
   }
 
-  /**
-   * Get next instance based on priority order or round-robin
-   */
   private getNextInstance(): string {
     if (this.config.priorityOrder) {
       // Priority order: always try first, then second, etc.
@@ -163,9 +153,6 @@ export class SearchProvider implements ISearchProvider {
     }
   }
 
-  /**
-   * Check if error is retryable
-   */
   private isRetryableError(error: any): boolean {
     // Network errors (no response)
     if (!error.response) {
@@ -190,9 +177,6 @@ export class SearchProvider implements ISearchProvider {
     return false;
   }
 
-  /**
-   * Get human-readable error message
-   */
   private getErrorMessage(error: any): string {
     if (!error) return 'Unknown error';
 
